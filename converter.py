@@ -37,37 +37,20 @@ def get_lines(image_path):
         line = None
         x = 0
         while x < width:
-            if is_black(pixels[x, y]): break;
+            if is_black(pixels[x, height - y - 1]): break;
             x += 1
         while x < width:
-            pixel_black = is_black(pixels[x, y])
+            pixel_black = is_black(pixels[x, height - y - 1])
             if line is None and pixel_black:
-                line = BlackLine(x, height - y - 1)
+                line = BlackLine(x, y)
                 black_lines.append(line)
             elif pixel_black:
                 line.increment()
             else:
                 line = None
             x += 1
-
         lines.append(black_lines)
     return lines
-
-
-def test_lines(image_path, lines):
-    image = Image.open(image_path).convert("RGB")
-    width, height = image.size
-    image = Image.new("RGB", (width, height), "red")
-
-    black = (0, 0, 0)
-    for black_lines in lines:
-        for line in black_lines:
-            y = height - line.get_y() - 1
-            for x in range(line.get_width()):
-                image.putpixel((line.get_x() + x, y), black)
-                #print(f"X{x} Y{y} W{line.get_width()} Burn:{line.get_black()}")
-
-    image.save("test_bitmap.bmp", format="BMP")
 
 
 def convert_gcode(output_file, lines):
@@ -76,8 +59,7 @@ def convert_gcode(output_file, lines):
         reverse = False
         for black_lines in lines:
             if reverse: black_lines.reverse()
-            for i in range(len(black_lines)):
-                line = black_lines[i]
+            for line in black_lines:
                 x = line.get_x()
                 y = line.get_y()
                 if reverse:
@@ -98,5 +80,4 @@ OUTPUT_FILE = "pcb.nc"      # nome do arquivo a ser gerado
 
 if __name__ == "__main__":
     lines = get_lines(INPUT_IMAGE)
-    test_lines(INPUT_IMAGE, lines)
     convert_gcode(OUTPUT_FILE, lines)
